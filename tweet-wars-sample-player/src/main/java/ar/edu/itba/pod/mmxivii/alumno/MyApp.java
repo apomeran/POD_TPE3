@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.swing.text.View;
 
@@ -27,6 +29,7 @@ public class MyApp extends ReceiverAdapter {
 	private GamePlayer gp;
 	private TweetsProvider tweetsProvider;
 	private GameMaster gameMaster;
+	private Executor executors = Executors.newCachedThreadPool();
 
 	private MyApp() {
 	}
@@ -34,15 +37,17 @@ public class MyApp extends ReceiverAdapter {
 	private void start() throws Exception {
 		channel = new JChannel(); // use the default config, udp.xml
 		channel.setReceiver(this);
-		channel.connect("ChatCluster");
+		channel.connect("all");
 		eventLoop();
 
 	}
 
 	private void eventLoop() {
 		try {
-			this.gp = new GamePlayer("USUARIO__1", "Alan P.");
-			final Registry registry = LocateRegistry.getRegistry(7242);
+			this.gp = new GamePlayer("AlanP2", "Alan P.");
+			final Registry registry = LocateRegistry.getRegistry(
+					7242);
+
 			this.tweetsProvider = (TweetsProvider) registry
 					.lookup(TWEETS_PROVIDER_NAME);
 			this.gameMaster = (GameMaster) registry.lookup(GAME_MASTER_NAME);
@@ -106,18 +111,23 @@ public class MyApp extends ReceiverAdapter {
 		System.out.println("** view: " + new_view);
 	}
 
-	public void receive(Message msg) {
-		String OTHER = ((Status) msg.getObject()).getSource();
-		String MYSELF = this.gp.getId();
-		if (!(OTHER.equals(MYSELF))) {
-			System.out.println("Received tweet from "
-					+ ((Status) msg.getObject()).getSource());
-			try {
-				this.checkTweet((Status) msg.getObject());
-			} catch (RemoteException e) {
-				e.printStackTrace();
+	public void receive(final Message msg) {
+		executors.execute((new Runnable() {
+			public void run() {
+				String OTHER = ((Status) msg.getObject()).getSource();
+				String MYSELF = gp.getId();
+				if (!(OTHER.equals(MYSELF))) {
+					System.out.println("Received tweet from "
+							+ ((Status) msg.getObject()).getSource());
+					try {
+						checkTweet((Status) msg.getObject());
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-		}
+		}));
+
 	}
 
 	private void checkTweet(Status tweet) throws RemoteException {

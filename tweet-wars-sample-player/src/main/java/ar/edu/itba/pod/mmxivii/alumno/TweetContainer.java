@@ -28,11 +28,13 @@ public class TweetContainer {
 
 	public void addFakeTweet(Status tweet) {
 		synchronized (this.fakePlayerTweets) {
-			List<Status> tweets = new ArrayList<Status>();
-			if (fakePlayerTweets.get(tweet.getSource()) == null) {
-				fakePlayerTweets.put(tweet.getSource(), tweets);
+			List<Status> tweets;
+			tweets = new ArrayList<Status>();
+			String source = tweet.getSource();
+			if (fakePlayerTweets.get(source) == null) {
+				fakePlayerTweets.put(source, tweets);
 			} else {
-				tweets = fakePlayerTweets.get(tweet.getSource());
+				tweets = fakePlayerTweets.get(source);
 			}
 			tweets.add(tweet);
 		}
