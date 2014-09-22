@@ -5,11 +5,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-import ar.edu.itba.pod.mmxivii.tweetwars.GameMaster;
-import ar.edu.itba.pod.mmxivii.tweetwars.GamePlayer;
-import ar.edu.itba.pod.mmxivii.tweetwars.Status;
-import ar.edu.itba.pod.mmxivii.tweetwars.TweetsProvider;
-
 public class App {
 	public static final String TWEETS_PROVIDER_NAME = "tweetsProvider";
 	public static final String GAME_MASTER_NAME = "gameMaster";

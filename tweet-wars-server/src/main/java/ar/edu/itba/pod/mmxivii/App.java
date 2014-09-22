@@ -14,8 +14,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 import java.util.Scanner;
 
-public class App
-{
+public class App {
 	public static final String TWEETS_PROVIDER_NAME = "tweetsProvider";
 	public static final String GAME_MASTER_NAME = "gameMaster";
 	private static final String PORT_S = "p";
@@ -28,58 +27,66 @@ public class App
 	private static final String MAX_THREADS_L = "max-threads";
 	private static Registry registry = null;
 
-	private App()
-	{
+	private App() {
 	}
 
-	public static void main( String[] args )
-    {
-	    try {
-		    final CommandLine cmdLine = parseArguments(args);
-		    final int port = Integer.valueOf( cmdLine.getOptionValue(PORT_L, PORT_D));
-		    final boolean slow = true;
-		    if (cmdLine.hasOption(MAX_THREADS_L)) {
-			    final String maxThreads = cmdLine.getOptionValue(MAX_THREADS_L);
-			    System.setProperty("sun.rmi.transport.tcp.maxConnectionThreads", maxThreads);
-		    }
+	public static void main(String[] args) {
+		try {
+			final CommandLine cmdLine = parseArguments(args);
+			final int port = Integer.valueOf(cmdLine.getOptionValue(PORT_L,
+					PORT_D));
+			final boolean slow = true;
+			if (cmdLine.hasOption(MAX_THREADS_L)) {
+				final String maxThreads = cmdLine.getOptionValue(MAX_THREADS_L);
+				System.setProperty(
+						"sun.rmi.transport.tcp.maxConnectionThreads",
+						maxThreads);
+			}
 
-		    final TweetsProviderImpl tweetsProvider = new TweetsProviderImpl(slow);
-		    final GameMasterImpl gameMaster = new GameMasterImpl(tweetsProvider);
+			final TweetsProviderImpl tweetsProvider = new TweetsProviderImpl(
+					slow);
+			final GameMasterImpl gameMaster = new GameMasterImpl(tweetsProvider);
 
-		    System.out.println( String.format("Starting Tweet Wars! Port:%d Slow:%s", port, String.valueOf(slow)));
-		    registry = LocateRegistry.createRegistry(port);
+			System.out.println(String.format(
+					"Starting Tweet Wars! Port:%d Slow:%s", port,
+					String.valueOf(slow)));
+			registry = LocateRegistry.createRegistry(port);
 
-		    registry.bind(TWEETS_PROVIDER_NAME, UnicastRemoteObject.exportObject(tweetsProvider, 0));
-		    registry.bind(GAME_MASTER_NAME, UnicastRemoteObject.exportObject(gameMaster, 0));
+			registry.bind(TWEETS_PROVIDER_NAME,
+					UnicastRemoteObject.exportObject(tweetsProvider, 0));
+			registry.bind(GAME_MASTER_NAME,
+					UnicastRemoteObject.exportObject(gameMaster, 0));
 
-		    System.out.println("Waiting for players");
-		    final Scanner scan = new Scanner(System.in);
-		    String line;
-		    do {
-			    line = scan.next();
-			    shutdown();
+			System.out.println("Waiting for players");
+			final Scanner scan = new Scanner(System.in);
+			String line;
+			do {
+				line = scan.next();
+				shutdown();
 
-		    } while(!"x".equals(line));
-		    System.exit(0);
+			} while (!"x".equals(line));
+			System.exit(0);
 
-	    } catch (RemoteException | ParseException | AlreadyBoundException e) {
-		    System.err.println("App Error: " + e.getMessage());
-		    System.exit(-1);
-	    }
-
-    }
-
-	private static void printScores() throws RemoteException, NotBoundException
-	{
-		final GameMaster gameMaster = (GameMaster) registry.lookup(GAME_MASTER_NAME);
-		System.out.println("Scores:");
-		for (Map.Entry<Integer, String> entry : gameMaster.getScores().entrySet()) {
-			System.out.println(String.format("%s: %d", entry.getValue(), entry.getKey()));
+		} catch (RemoteException | ParseException | AlreadyBoundException e) {
+			System.err.println("App Error: " + e.getMessage());
+			System.exit(-1);
 		}
 
 	}
-	public static void shutdown()
-	{
+
+	private static void printScores() throws RemoteException, NotBoundException {
+		final GameMaster gameMaster = (GameMaster) registry
+				.lookup(GAME_MASTER_NAME);
+		System.out.println("Scores:");
+		for (Map.Entry<Integer, String> entry : gameMaster.getScores()
+				.entrySet()) {
+			System.out.println(String.format("%s: %d", entry.getValue(),
+					entry.getKey()));
+		}
+
+	}
+
+	public static void shutdown() {
 		try {
 			printScores();
 
@@ -92,25 +99,28 @@ public class App
 
 	}
 
-	private static CommandLine parseArguments(String[] args) throws ParseException
-	{
+	private static CommandLine parseArguments(String[] args)
+			throws ParseException {
 		try {
 			final Options options = new Options();
 			options.addOption(PORT_S, PORT_L, true, "Referee server port");
-			options.addOption(REAL_S, REAL_L, false, "With simulated network latency");
-			options.addOption(MAX_THREADS_S, MAX_THREADS_L, true, "Max Threads for Server");
+			options.addOption(REAL_S, REAL_L, false,
+					"With simulated network latency");
+			options.addOption(MAX_THREADS_S, MAX_THREADS_L, true,
+					"Max Threads for Server");
 			options.addOption("help", false, "Help");
 
 			// parse the command line arguments
-			final CommandLine commandLine = new BasicParser().parse(options, args, false);
+			final CommandLine commandLine = new BasicParser().parse(options,
+					args, false);
 
 			if (commandLine.hasOption("help")) {
-				new HelpFormatter().printHelp("java -jar tweet-wars-server.jar <options>", options);
+				new HelpFormatter().printHelp(
+						"java -jar tweet-wars-server.jar <options>", options);
 				System.exit(-3);
 			}
 			return commandLine;
-		}
-		catch (ParseException exp) {
+		} catch (ParseException exp) {
 			// oops, something went wrong
 			System.err.println("Parsing failed.  Reason: " + exp.getMessage());
 			throw exp;

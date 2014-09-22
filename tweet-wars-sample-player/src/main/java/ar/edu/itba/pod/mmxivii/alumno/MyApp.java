@@ -35,9 +35,10 @@ public class MyApp extends ReceiverAdapter {
 	}
 
 	private void start() throws Exception {
+		System.setProperty("java.net.preferIPv4Stack", "true");
 		channel = new JChannel(); // use the default config, udp.xml
 		channel.setReceiver(this);
-		channel.connect("all");
+		channel.connect("profem");
 		eventLoop();
 
 	}
@@ -45,8 +46,8 @@ public class MyApp extends ReceiverAdapter {
 	private void eventLoop() {
 		try {
 			this.gp = new GamePlayer("AlanP2", "Alan P.");
-			final Registry registry = LocateRegistry.getRegistry(
-					7242);
+			final Registry registry = LocateRegistry.getRegistry("10.6.0.154",
+					7240);
 
 			this.tweetsProvider = (TweetsProvider) registry
 					.lookup(TWEETS_PROVIDER_NAME);

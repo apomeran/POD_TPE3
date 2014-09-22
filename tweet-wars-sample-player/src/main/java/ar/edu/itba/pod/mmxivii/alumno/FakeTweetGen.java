@@ -15,7 +15,7 @@ public class FakeTweetGen extends Thread {
 
 	public static final int MIN_DELAY = 200;
 	public static final int MAX_DELTA = 800;
-	public static final float PROBABILITY = (float) 0.01;
+	public static final float PROBABILITY = (float) 0.001;
 	private final boolean slow = true;
 
 	public FakeTweetGen(JChannel channel, String gamePlayerID, String hash) {
