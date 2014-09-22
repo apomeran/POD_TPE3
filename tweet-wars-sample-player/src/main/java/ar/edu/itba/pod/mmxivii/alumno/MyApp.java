@@ -6,10 +6,11 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.List;
 
+import javax.swing.text.View;
+
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
 
 import ar.edu.itba.pod.mmxivii.tweetwars.GameMaster;
 import ar.edu.itba.pod.mmxivii.tweetwars.GamePlayer;
@@ -40,7 +41,7 @@ public class MyApp extends ReceiverAdapter {
 
 	private void eventLoop() {
 		try {
-			this.gp = new GamePlayer("USUARIO__17", "Alan P.");
+			this.gp = new GamePlayer("USUARIO__1", "Alan P.");
 			final Registry registry = LocateRegistry.getRegistry(7242);
 			this.tweetsProvider = (TweetsProvider) registry
 					.lookup(TWEETS_PROVIDER_NAME);
@@ -112,24 +113,23 @@ public class MyApp extends ReceiverAdapter {
 			System.out.println("Received tweet from "
 					+ ((Status) msg.getObject()).getSource());
 			try {
-				this.checkTweet((Status) msg.getObject(), repo, gp, gameMaster);
+				this.checkTweet((Status) msg.getObject());
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private void checkTweet(Status tweet, TweetContainer repo, GamePlayer p,
-			GameMaster master) throws RemoteException {
+	private void checkTweet(Status tweet) throws RemoteException {
 		if (tweet == null)
 			return;
 		Status actualTweet = tweetsProvider.getTweet(tweet.getId());
 		if (actualTweet == null)
-			reportFakeArray(repo, tweet, p, master);
+			reportFakeArray(tweet);
 		if (compareTweet(actualTweet, tweet)) {
-			reportFakeArray(repo, tweet, p, master);
+			reportFakeArray(tweet);
 		} else {
-			master.tweetReceived(p, tweet);
+			gameMaster.tweetReceived(this.gp, tweet);
 			System.out.println("ACK Tweet to Master");
 
 		}
@@ -152,11 +152,10 @@ public class MyApp extends ReceiverAdapter {
 		return false;
 	}
 
-	private void reportFakeArray(TweetContainer repo, Status tweet,
-			GamePlayer p, GameMaster master) throws RemoteException {
-		if (!tweet.getSource().equals(p.getId())) {
-			repo.addFakeTweet(tweet);
-			List<Status> fakeTweetsList = repo.fakeTweetsForPlayer(tweet
+	private void reportFakeArray(Status tweet) throws RemoteException {
+		if (!tweet.getSource().equals(this.gp.getId())) {
+			this.repo.addFakeTweet(tweet);
+			List<Status> fakeTweetsList = this.repo.fakeTweetsForPlayer(tweet
 					.getSource());
 			if (fakeTweetsList.size() >= GameMaster.MIN_FAKE_TWEETS_BATCH) {
 
@@ -167,8 +166,8 @@ public class MyApp extends ReceiverAdapter {
 
 				}
 
-				master.reportFake(p, s);
-				repo.removeFakeTweetsForPlayer(tweet.getSource());
+				gameMaster.reportFake(this.gp, s);
+				this.repo.removeFakeTweetsForPlayer(tweet.getSource());
 				System.out.println("Reported FAKE TWEETS BATCH");
 
 			}
