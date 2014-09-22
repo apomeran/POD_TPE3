@@ -38,16 +38,16 @@ public class MyApp extends ReceiverAdapter {
 		System.setProperty("java.net.preferIPv4Stack", "true");
 		channel = new JChannel(); // use the default config, udp.xml
 		channel.setReceiver(this);
-		channel.connect("profem");
+		channel.connect("profeu");
 		eventLoop();
 
 	}
 
 	private void eventLoop() {
 		try {
-			this.gp = new GamePlayer("AlanP2", "Alan P.");
+			this.gp = new GamePlayer("Alan P 2", "Alan P.");
 			final Registry registry = LocateRegistry.getRegistry("10.6.0.154",
-					7240);
+					7250);
 
 			this.tweetsProvider = (TweetsProvider) registry
 					.lookup(TWEETS_PROVIDER_NAME);
@@ -115,15 +115,17 @@ public class MyApp extends ReceiverAdapter {
 	public void receive(final Message msg) {
 		executors.execute((new Runnable() {
 			public void run() {
-				String OTHER = ((Status) msg.getObject()).getSource();
-				String MYSELF = gp.getId();
-				if (!(OTHER.equals(MYSELF))) {
-					System.out.println("Received tweet from "
-							+ ((Status) msg.getObject()).getSource());
-					try {
-						checkTweet((Status) msg.getObject());
-					} catch (RemoteException e) {
-						e.printStackTrace();
+				if (msg.getObject() instanceof Status) {
+					String OTHER = ((Status) msg.getObject()).getSource();
+					String MYSELF = gp.getId();
+					if (!(OTHER.equals(MYSELF))) {
+						System.out.println("Received tweet from "
+								+ ((Status) msg.getObject()).getSource());
+						try {
+							checkTweet((Status) msg.getObject());
+						} catch (RemoteException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
